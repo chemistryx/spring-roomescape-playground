@@ -1,64 +1,42 @@
 package roomescape.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import roomescape.domain.Reservation;
+import roomescape.exception.NotFoundReservationException;
+import roomescape.repository.ReservationRepository;
 
-import java.sql.PreparedStatement;
 import java.util.List;
 
 @Service
 public class ReservationService {
-    private final JdbcTemplate jdbcTemplate;
+
+    private final ReservationRepository reservationRepository;
 
     @Autowired
-    public ReservationService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public ReservationService(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
     }
 
     public Reservation createReservation(Reservation reservation) {
-        String sql = "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)";
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    sql,
-                    new String[]{"id"});
-            ps.setString(1, reservation.getName());
-            ps.setString(2, reservation.getDate());
-            ps.setString(3, reservation.getTime());
-            return ps;
-        }, keyHolder);
-
-        Long generatedId = keyHolder.getKey().longValue();
-
-        return new Reservation(generatedId, reservation.getName(), reservation.getDate(), reservation.getDate());
+        if (!isValidReservation(reservation)) {
+            throw new NotFoundReservationException("Invalid reservation details or time_id not found");
+        }
+        return reservationRepository.save(reservation);
     }
 
     public List<Reservation> getReservations() {
-        String sql = "SELECT id, name, date, time FROM reservation";
-        return jdbcTemplate.query(sql,
-                (resultSet, rowNum) -> new Reservation(
-                        resultSet.getLong("id"),
-                        resultSet.getString("name"),
-                        resultSet.getString("date"),
-                        resultSet.getString("time")
-                ));
+        return reservationRepository.findAll();
     }
 
     public boolean deleteReservation(Long id) {
-        String sql = "DELETE FROM reservation WHERE id = ?";
-        int rowsAffected = jdbcTemplate.update(sql, id);
+        int rowsAffected = reservationRepository.deleteById(id);
         return rowsAffected > 0;
     }
 
     public boolean isValidReservation(Reservation reservation) {
         return reservation.getName() != null && !reservation.getName().isEmpty() &&
                 reservation.getDate() != null && !reservation.getDate().isEmpty() &&
-                reservation.getTime() != null && !reservation.getTime().isEmpty();
+                reservation.getTime() != null && reservation.getTime().getId() != null;
     }
 }

@@ -1,19 +1,14 @@
 package roomescape.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import roomescape.domain.Reservation;
-import roomescape.exception.NotFoundReservationException;
 import roomescape.service.ReservationService;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Controller
 public class ReservationController {
@@ -26,7 +21,7 @@ public class ReservationController {
 
     @GetMapping("/reservation")
     public String showReservationPage() {
-        return "reservation";
+        return "new-reservation";
     }
 
     @PostMapping("/reservations")
@@ -39,7 +34,7 @@ public class ReservationController {
        Reservation newReservation = reservationService.createReservation(reservation);
 
        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId()))
-                .body(newReservation);
+               .body(newReservation);
     }
 
     @DeleteMapping("/reservations/{id}")
