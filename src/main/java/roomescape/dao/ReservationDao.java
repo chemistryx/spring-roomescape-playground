@@ -1,8 +1,6 @@
 package roomescape.dao;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import roomescape.domain.Reservation;
+import roomescape.domain.Time;
 import roomescape.repository.ReservationRepository;
 
 @Repository
@@ -27,16 +26,30 @@ public class ReservationDao implements ReservationRepository {
 
     private RowMapper<Reservation> reservationRowMapper() {
         return (rs, rowNum) -> new Reservation(
-            rs.getLong("id"),
+            rs.getLong("reservation_id"),
             rs.getString("name"),
-            rs.getDate("date").toLocalDate(),
-            rs.getTime("time").toLocalTime()
+            rs.getString("date"),
+            new Time(
+                rs.getLong("time_id"),
+                rs.getTime("time_value").toLocalTime()
+            )
         );
     }
 
     @Override
     public Optional<Reservation> findById(Long id) {
-        String sql = "SELECT id, name, date, time FROM reservation where id = ?";
+        String sql = """
+            SELECT
+                r.id as reservation_id,
+                r.name,
+                r.date,
+                t.id as time_id,
+                t.time as time_value
+            FROM reservation as r 
+            INNER JOIN time as t 
+            ON r.time_id = t.id
+            WHERE r.id = ?
+            """;
         try {
             Reservation reservation = jdbcTemplate.queryForObject(sql, reservationRowMapper(), id);
             return Optional.of(reservation);
@@ -47,19 +60,29 @@ public class ReservationDao implements ReservationRepository {
 
     @Override
     public List<Reservation> findAll() {
-        String sql = "SELECT id, name, date, time FROM reservation";
+        String sql = """
+            SELECT
+                r.id as reservation_id,
+                r.name,
+                r.date,
+                t.id as time_id,
+                t.time as time_value
+            FROM reservation as r 
+            INNER JOIN time as t 
+            ON r.time_id = t.id
+            """;
         return jdbcTemplate.query(sql, reservationRowMapper());
     }
 
     @Override
     public Reservation save(Reservation reservation) {
-        String sql = "INSERT INTO reservation(name, date, time) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO reservation(name, date, time_id) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setString(1, reservation.getName());
-            ps.setDate(2, Date.valueOf(reservation.getDate()));
-            ps.setTime(3, Time.valueOf(reservation.getTime()));
+            ps.setString(2, reservation.getDate());
+            ps.setLong(3, reservation.getTime().getId());
             return ps;
         }, keyHolder);
 
