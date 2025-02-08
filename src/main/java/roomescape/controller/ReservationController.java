@@ -1,36 +1,41 @@
 package roomescape.controller;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
+import roomescape.dto.request.ReservationCreateRequest;
+import roomescape.dto.response.ReservationResponse;
+import roomescape.service.ReservationService;
 
-@Controller
+@RestController
 public class ReservationController {
-    private final List<Reservation> reservations = createReservations();
+    private final ReservationService reservationService;
 
-    @GetMapping("/")
-    public String home() {
-        return "home";
-    }
-
-    @GetMapping("/reservation")
-    public String reservations() {
-        return "reservation";
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
     }
 
     @GetMapping("/reservations")
-    @ResponseBody
     public List<Reservation> getReservations() {
-        return reservations;
+        return reservationService.showReservations();
     }
 
-    private List<Reservation> createReservations() {
-        return List.of(new Reservation(1, "파도", LocalDate.of(2025, 2, 2), LocalTime.of(9, 10)),
-                new Reservation(2, "달", LocalDate.of(2025, 1, 14), LocalTime.of(10, 10)),
-                new Reservation(3, "별", LocalDate.of(2025, 2, 1), LocalTime.of(10, 10)));
+    @PostMapping("/reservations")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReservationResponse createReservation(@RequestBody ReservationCreateRequest request) {
+        return reservationService.reserve(request);
+    }
+
+    @DeleteMapping("/reservations/{reservationId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelReservation(@PathVariable Long reservationId) {
+        reservationService.cancelReservation(reservationId);
     }
 }
