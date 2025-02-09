@@ -1,30 +1,42 @@
 package roomescape.service;
 
 import org.springframework.stereotype.Service;
+import roomescape.dto.request.CreateReservationRequest;
+import roomescape.dto.response.ReservationResponse;
 import roomescape.entity.Reservation;
+import roomescape.global.exception.BadRequestException;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import static roomescape.global.exception.ExceptionMessage.RESERVATION_NOT_EXISTS;
 
 @Service
 public class ReservationService {
 
-    private List<Reservation> reservations = createReservations();
+    private List<Reservation> reservations = new ArrayList<>();
 
-    public List<Reservation> getReservations() {
-        return reservations;
+    public ReservationResponse createReservation(final CreateReservationRequest request) {
+        Reservation reservation = new Reservation(request.name(), request.date(), request.time());
+        reservations.add(reservation);
+        return new ReservationResponse(reservation);
     }
 
-    private List<Reservation> createReservations() {
-        return List.of(
-                createReservation(1L, "브라운", LocalDate.of(2024, 2, 1), LocalTime.of(10, 0, 0)),
-                createReservation(2L, "브라운", LocalDate.of(2024, 2, 2), LocalTime.of(11, 0, 0)),
-                createReservation(3L, "브라운", LocalDate.of(2024, 2, 3), LocalTime.of(12, 0, 0))
-        );
+    public List<ReservationResponse> getReservations() {
+        return reservations.stream()
+                .map(ReservationResponse::new)
+                .toList();
     }
 
-    private Reservation createReservation(Long id, String name, LocalDate date, LocalTime time) {
-        return new Reservation(id, name, date, time);
+    public void deleteReservation(final long reservationId) {
+        Reservation reservation = findReservation(reservationId);
+        reservations.remove(reservation);
+    }
+
+    private Reservation findReservation(final long reservationId) {
+        return reservations.stream()
+                .filter(reservation -> reservation.isSameId(reservationId))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(RESERVATION_NOT_EXISTS.getMessage()));
     }
 }
