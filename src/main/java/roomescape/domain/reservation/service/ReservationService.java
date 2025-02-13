@@ -30,13 +30,12 @@ public class ReservationService {
     }
 
     public ReservationResponse createReservation(final ReservationRequest reservationRequest) {
-        Reservation savedReservation = reservationRepository.addReservation(
-                ReservationRequest.toReservation(reservationRequest));
+        Reservation savedReservation = reservationRepository.addReservation(reservationRequest);
 
         return ReservationResponse.fromReservation(savedReservation);
     }
 
-    public void deleteReservation(final Long id) {
+    public void deleteReservation(final long id) {
         if (id < 0) {
             throw new InvalidParameterException(ErrorStatus.INVALID_REQUEST_RESERVATION_ID);
         }

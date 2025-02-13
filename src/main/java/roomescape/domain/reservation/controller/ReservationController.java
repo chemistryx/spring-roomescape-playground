@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +18,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(final ReservationService reservationService) {
         this.reservationService = reservationService;
     }
 
@@ -41,7 +40,8 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest reservationRequest) {
+    public ResponseEntity<ReservationResponse> createReservation(
+            @RequestBody final ReservationRequest reservationRequest) {
         ReservationResponse result = reservationService.createReservation(reservationRequest);
         URI Location = URI.create("/reservations/" + result.id());
 
@@ -49,10 +49,9 @@ public class ReservationController {
     }
 
     @DeleteMapping("/reservations/{reservationId}")
-    public ResponseEntity deleteReservation(@Validated  @PathVariable Long reservationId) {
+    public ResponseEntity deleteReservation(@PathVariable final long reservationId) {
         reservationService.deleteReservation(reservationId);
 
         return ResponseEntity.noContent().build();
     }
-
 }
