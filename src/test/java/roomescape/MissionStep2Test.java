@@ -6,12 +6,16 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.format.DateTimeFormatters;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,6 +25,10 @@ import roomescape.application.dto.ReservationResponseDto;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStep2Test {
 
+    private static final LocalDate reservedDate = LocalDate.now().plusDays(10);
+    private static final LocalTime reservedTime = LocalTime.now();
+    private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -37,7 +45,9 @@ public class MissionStep2Test {
 
     @Test
     void 육단계() {
-        jdbcTemplate.update("INSERT INTO reservations (name, reserved_date, reserved_time) VALUES (?, ?, ?)", "브라운", "2023-08-05", "15:40");
+
+        jdbcTemplate.update("INSERT INTO reservations (name, reserved_date, reserved_time) VALUES (?, ?, ?)", "브라운",
+                reservedDate, reservedTime);
 
         List<ReservationResponseDto> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -51,12 +61,11 @@ public class MissionStep2Test {
     }
 
     @Test
-    @Disabled
     void 칠단계() {
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
-        params.put("date", "2023-08-05");
-        params.put("time", "10:00");
+        params.put("date", dateFormat.format(reservedDate));
+        params.put("time", timeFormat.format(reservedTime));
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -66,7 +75,7 @@ public class MissionStep2Test {
                 .statusCode(201)
                 .header("Location", "/reservations/1");
 
-        Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservations", Integer.class);
         assertThat(count).isEqualTo(1);
 
         RestAssured.given().log().all()
@@ -74,7 +83,7 @@ public class MissionStep2Test {
                 .then().log().all()
                 .statusCode(204);
 
-        Integer countAfterDelete = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+        Integer countAfterDelete = jdbcTemplate.queryForObject("SELECT count(1) from reservations", Integer.class);
         assertThat(countAfterDelete).isEqualTo(0);
     }
 }
