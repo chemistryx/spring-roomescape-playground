@@ -1,10 +1,11 @@
-package roomescape.entity;
+package roomescape.domain;
 
 import roomescape.global.exception.BadRequestException;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import static roomescape.global.exception.ExceptionMessage.INVALID_DATE;
@@ -13,10 +14,10 @@ import static roomescape.global.exception.ExceptionMessage.INVALID_TIME;
 
 public class Reservation {
 
-    public static final AtomicLong RESERVATION_ID = new AtomicLong(0);
     private static final int MIN_NAME_LENGTH = 2;
     private static final int MAX_NAME_LENGTH = 10;
     private static final Pattern NAME_FORMAT = Pattern.compile("^[가-힣]+$");
+    private static final int VALID_MINUTE_UNIT = 0;
 
     private Long id;
 
@@ -37,16 +38,16 @@ public class Reservation {
         this.time = time;
     }
 
-    public Reservation(String name, LocalDate date, LocalTime time) {
+    public Reservation(final String name, final LocalDate date, final LocalTime time) {
         validate(name, date, time);
-        this.id = RESERVATION_ID.incrementAndGet();
         this.name = name;
         this.date = date;
         this.time = time;
     }
 
-    public boolean isSameId(final long reservationId) {
-        return id.equals(reservationId);
+    public boolean isExpired(final Clock clock) {
+        LocalDateTime dateTime = date.atTime(time);
+        return dateTime.isBefore(LocalDateTime.now(clock));
     }
 
     public Long getId() {
@@ -95,15 +96,26 @@ public class Reservation {
         }
     }
 
+    private void validateDate(final LocalDate date) {
+        if (date == null) {
+            throw new BadRequestException(INVALID_DATE.getMessage());
+        }
+    }
+
     private void validateTime(final LocalTime time) {
+        validateTimeExists(time);
+        validateTimeFormat(time);
+    }
+
+    private void validateTimeExists(final LocalTime time) {
         if (time == null) {
             throw new BadRequestException(INVALID_TIME.getMessage());
         }
     }
 
-    private void validateDate(final LocalDate date) {
-        if (date == null) {
-            throw new BadRequestException(INVALID_DATE.getMessage());
+    private void validateTimeFormat(final LocalTime time) {
+        if (time.getMinute() != VALID_MINUTE_UNIT) {
+            throw new BadRequestException(INVALID_TIME.getMessage());
         }
     }
 }
