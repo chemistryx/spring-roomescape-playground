@@ -7,11 +7,15 @@ public class Reservation {
 
     private final Long id;
 
-    private String name;
+    private final String name;
 
-    private LocalDate date;
+    private final LocalDate date;
 
-    private LocalTime time;
+    private final LocalTime time;
+
+    public static Reservation newWithoutId(final String name, final LocalDate date, final LocalTime time) {
+        return new Reservation(null, name, date, time);
+    }
 
     public Reservation(final Long id, final String name, final LocalDate date, final LocalTime time) {
         this.id = id;
