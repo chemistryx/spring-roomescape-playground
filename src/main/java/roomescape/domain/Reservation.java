@@ -2,6 +2,7 @@ package roomescape.domain;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import roomescape.error.ErrorMessage;
 import roomescape.error.exception.InvalidValueException;
@@ -16,16 +17,16 @@ public class Reservation {
 
     public Reservation(Long id, String name, LocalDate date, LocalTime time) {
         this.id = id;
-        validate(name, date, time);
+        validateName(name);
         this.name = name;
         this.date = date;
         this.time = time;
     }
 
-    private void validate(String name, LocalDate reservationDate, LocalTime reservationTime) {
-        validateName(name);
-        validateDate(reservationDate);
-        validateTime(reservationTime);
+    public Reservation(String name, LocalDate date, LocalTime time) {
+        this.name = name;
+        this.date = date;
+        this.time = time;
     }
 
     public boolean isSameReservation(Long reservationId) {
@@ -60,15 +61,18 @@ public class Reservation {
         }
     }
 
-    private void validateDate(LocalDate reservationDate) {
-        if (reservationDate == null) {
-            throw new InvalidValueException(ErrorMessage.INVALID_DATE.getMessage());
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
+        Reservation that = (Reservation) o;
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name)
+            && Objects.equals(date, that.date) && Objects.equals(time, that.time);
     }
 
-    private void validateTime(LocalTime reservationTime) {
-        if (reservationTime == null) {
-            throw new InvalidValueException(ErrorMessage.INVALID_TIME.getMessage());
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, date, time);
     }
 }

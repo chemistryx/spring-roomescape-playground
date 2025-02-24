@@ -1,11 +1,9 @@
 package roomescape.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
 import roomescape.domain.Reservation;
 import roomescape.dto.request.ReservationCreateRequest;
@@ -16,8 +14,6 @@ import roomescape.repository.ReservationDAO;
 
 @Service
 public class ReservationService {
-    private final AtomicLong index = new AtomicLong(0);
-    private final List<Reservation> reservations = new ArrayList<>();
     private final ReservationDAO reservationDAO;
 
     public ReservationService(ReservationDAO reservationDAO) {
@@ -29,21 +25,25 @@ public class ReservationService {
     }
 
     public ReservationResponse reserve(ReservationCreateRequest request) {
-        Long id = index.incrementAndGet();
-        String name = request.getName();
-        LocalDate reservationDate = request.getDate();
-        LocalTime reservationTime = request.getTime();
-
-        reservations.add(new Reservation(id, name, reservationDate, reservationTime));
-        return new ReservationResponse(id, name, reservationDate, reservationTime);
+        validateDateTime(request.date(), request.time());
+        Reservation reservation = new Reservation(request.name(), request.date(), request.time());
+        Reservation response = reservationDAO.createReservation(reservation);
+        return new ReservationResponse(response.getId(), response.getName(), response.getDate(), response.getTime());
     }
 
     public void cancelReservation(Long reservationId) {
-        Reservation targetReservation = reservations.stream()
-                .filter(reservation -> reservation.isSameReservation(reservationId))
-                .findFirst()
-                .orElseThrow(() -> new InvalidValueException(ErrorMessage.NO_RESERVATION.getMessage()));
+        reservationDAO.deleteReservation(reservationId);
+    }
 
-        reservations.remove(targetReservation);
+    private void validateDateTime(LocalDate reservationDate, LocalTime reservationTime) {
+        if (reservationDate == null || reservationTime == null) {
+            throw new InvalidValueException(ErrorMessage.INVALID_DATE_TIME.getMessage());
+        }
+
+        LocalDateTime reservationDateTime = LocalDateTime.of(reservationDate, reservationTime);
+
+        if (reservationDateTime.isBefore(LocalDateTime.now())) {
+            throw new InvalidValueException(ErrorMessage.INVALID_FUTURE_TIME.getMessage());
+        }
     }
 }
