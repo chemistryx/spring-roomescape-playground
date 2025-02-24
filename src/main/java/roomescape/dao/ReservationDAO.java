@@ -5,16 +5,12 @@ import roomescape.entity.Reservation;
 
 public interface ReservationDAO {
 
-    void save(Reservation reservation);
+    Reservation create(Reservation reservation);
 
     List<Reservation> getAll();
 
-    void update(Reservation reservation);
-
     void delete(long id);
 
-    int count();
-
-    Reservation getById(int id);
+    Reservation getById(long id);
 
 }

@@ -6,16 +6,31 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
-//RANDOM_PORT로 추후 적용 예정
-@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStepTest {
+
+    @LocalServerPort
+    private int port;
+
+    @BeforeEach
+    void setUp() {
+        RestAssured.port = port;
+    }
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
 
     @Test
     @DisplayName("일단계")
@@ -26,6 +41,7 @@ public class MissionStepTest {
                 .statusCode(200);
     }
 
+    //임의의 List에 넣어준 갯수를 확인했던 테스트 코드이기 때문에 7단계 시점에서는 통과하지 않습니다.
     @Test
     @DisplayName("이단계")
     void 이단계() {
@@ -35,11 +51,20 @@ public class MissionStepTest {
                 .then().log().all()
                 .statusCode(200);
 
+        Integer initialCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM reservation", Integer.class);
+
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자1", "2025-02-23",
+                "10:00");
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자2", "2025-02-23",
+                "11:00");
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자3", "2025-02-23",
+                "12:00");
+
         RestAssured.given().log().all()
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
-                .body("size()", is(3)); // 아직 생성 요청이 없으니 Controller에서 임의로 넣어준 Reservation 갯수 만큼 검증하거나 0개임을 확인하세요.
+                .body("size()", is(initialCount + 3));
     }
 
     @Test

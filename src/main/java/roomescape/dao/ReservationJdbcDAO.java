@@ -1,34 +1,45 @@
 package roomescape.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.sql.DataSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import roomescape.entity.Reservation;
-import roomescape.exception.InvalidException;
-import roomescape.exception.NotFoundReservationException;
+import roomescape.exception.DataInvalidException;
 
 
 @Repository
 public class ReservationJdbcDAO implements ReservationDAO {
 
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<Reservation> rowMapper = new ReservationRowMapper(); //
+    private final RowMapper<Reservation> rowMapper = new ReservationRowMapper();
+    private final SimpleJdbcInsert simpleJdbcInsert;
 
-    public ReservationJdbcDAO(JdbcTemplate jdbcTemplate) {
+    public ReservationJdbcDAO(JdbcTemplate jdbcTemplate, DataSource dataSource) {
         this.jdbcTemplate = jdbcTemplate;
+        this.simpleJdbcInsert = new SimpleJdbcInsert(dataSource)
+                .withTableName("reservation")
+                .usingGeneratedKeyColumns("id");
+
     }
 
     @Override
-    public void save(Reservation reservation) {
-        String sql = "INSERT INTO reservation (name, date, ime) VALUES (?, ?, ?)";
-        try {
-            jdbcTemplate.update(sql, reservation.getName(), reservation.getDate(), reservation.getTime());
-        } catch (InvalidException e) {
-            throw new InvalidException(e.getMessage());
-        }
+    public Reservation create(Reservation reservation) {
 
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", reservation.getName());
+        parameters.put("date", reservation.getDate());
+        parameters.put("time", reservation.getTime());
+
+        Number generatedId = simpleJdbcInsert.executeAndReturnKey(parameters);
+
+        return new Reservation(generatedId.longValue(), reservation.getName(), reservation.getDate(),
+                reservation.getTime());
     }
 
     @Override
@@ -37,15 +48,6 @@ public class ReservationJdbcDAO implements ReservationDAO {
         return jdbcTemplate.query(sql, rowMapper);
     }
 
-    @Override
-    public void update(Reservation reservation) {
-        String sql = "UPDATE reservation SET name = ? , date = ?, time = ? WHERE id = ? ";
-        int rowAffected = jdbcTemplate.update(sql, reservation.getName(), reservation.getDate(), reservation.getTime(),
-                reservation.getId());
-        if (rowAffected == 0) {
-            throw new InvalidException("예약을 찾을 수 없습니다.");
-        }
-    }
 
     @Override
     public void delete(long id) {
@@ -53,34 +55,20 @@ public class ReservationJdbcDAO implements ReservationDAO {
 
         int rowsAffected = jdbcTemplate.update(sql, id);
         if (rowsAffected == 0) {
-            throw new InvalidException("예약을 찾을 수 없습니다. ID: " + id);
+            throw new DataInvalidException("예약을 찾을 수 없습니다. ID: " + id);
         }
     }
 
-    @Override
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM reservation";
-        try {
-            Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
-            if (count == null) {
-                return 0;
-            }
-            return count;
-        } catch (Exception e) {
-            throw new InvalidException("ID를 조회하는 동안 오류 발생 : " + e.getMessage());
-        }
-    }
 
     @Override
-    public Reservation getById(int id) {
+    public Reservation getById(long id) {
         String sql = "SELECT * FROM reservation WHERE id = ?";
 
         try {
             return jdbcTemplate.queryForObject(sql, rowMapper, id);
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundReservationException("해당 ID의 예약을 찾을 수 없습니다 : " + e.getMessage());
+            throw new DataInvalidException("해당 ID의 예약을 찾을 수 없습니다 : " + e.getMessage());
         }
-
     }
 
 }
