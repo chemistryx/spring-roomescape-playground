@@ -8,6 +8,11 @@ public class ReservationController {
 
     @GetMapping("/reservation")
     public String accessReservationPage() {
-        return "reservation";
+        return "new-reservation";
+    }
+
+    @GetMapping("/time")
+    public String showTimeForm() {
+        return "time";
     }
 }

@@ -2,12 +2,12 @@ package roomescape.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import roomescape.entity.Reservation;
-import roomescape.exception.NotFoundReservationException;
+import roomescape.entity.ReservationTime;
+import roomescape.exception.NotFoundException;
 import roomescape.repository.ReservationRepository;
 
 import javax.sql.DataSource;
@@ -27,34 +27,45 @@ public class ReservationDAO implements ReservationRepository {
     }
 
     private final RowMapper<Reservation> reservationRowMapper = (resultSet, rowNum) -> {
-        Reservation reservation = new Reservation(
+        ReservationTime reservationTime = new ReservationTime(resultSet.getLong("time_id"), resultSet.getString("time_value"));
+
+        return new Reservation(
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
                 resultSet.getString("date"),
-                resultSet.getString("time")
+                reservationTime
         );
-
-        return reservation;
     };
 
-    public List<Reservation> findAllReservations() {
-        String sql = "select id, name, date, time from reservation";
-        return jdbcTemplate.query(sql, reservationRowMapper);
-    }
 
-    public Reservation createReservation(Reservation reservation) {
-        SqlParameterSource parameters = new BeanPropertySqlParameterSource(reservation);
+    public Reservation save(Reservation reservation) {
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("name", reservation.getName())
+                .addValue("date", reservation.getDate())
+                .addValue("time_id", reservation.getTime().getId());
+
         Long newId = insertReservation.executeAndReturnKey(parameters).longValue();
 
         return new Reservation(newId, reservation.getName(), reservation.getDate().getDate(), reservation.getTime());
     }
 
-    public void deleteReservation(Long id) {
+    public List<Reservation> findAll() {
+        String sql = "SELECT \n" +
+                "    r.id as reservation_id, \n" +
+                "    r.name, \n" +
+                "    r.date, \n" +
+                "    t.id as time_id, \n" +
+                "    t.time as time_value \n" +
+                "FROM reservation as r inner join time as t on r.time_id = t.id";
+        return jdbcTemplate.query(sql, reservationRowMapper);
+    }
+
+    public void delete(Long id) {
         String sql = "delete from reservation where id = ?";
         int rowsAffected = jdbcTemplate.update(sql, id);
 
         if (rowsAffected == 0) {
-            throw new NotFoundReservationException();
+            throw new NotFoundException("예약");
         }
     }
 }

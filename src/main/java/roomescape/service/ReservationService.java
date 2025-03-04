@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.entity.Reservation;
+import roomescape.entity.ReservationTime;
 import roomescape.repository.ReservationRepository;
+import roomescape.repository.ReservationTimeRepository;
 
 import java.util.List;
 
@@ -14,9 +16,18 @@ import java.util.List;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final ReservationTimeRepository reservationTimeRepository;
+
+    public ReservationResponse createReservation(ReservationRequest reservationRequest) {
+        Reservation reservation = convertToReservation(reservationRequest);
+
+        reservation = reservationRepository.save(reservation);
+
+        return ReservationResponse.fromReservation(reservation);
+    }
 
     public List<ReservationResponse> findAllReservations() {
-        List<Reservation> reservations = reservationRepository.findAllReservations();
+        List<Reservation> reservations = reservationRepository.findAll();
 
         List<ReservationResponse> reservationResponses = reservations.stream()
                 .map(ReservationResponse::fromReservation)
@@ -25,17 +36,16 @@ public class ReservationService {
         return reservationResponses;
     }
 
-    public ReservationResponse createReservation(ReservationRequest reservationRequest) {
-        Reservation reservation = reservationRequest.toEntity();
-
-        reservation = reservationRepository.createReservation(reservation);
-
-        ReservationResponse reservationResponse = ReservationResponse.fromReservation(reservation);
-
-        return reservationResponse;
+    public void deleteReservation(Long id) {
+        reservationRepository.delete(id);
     }
 
-    public void deleteReservation(Long id) {
-        reservationRepository.deleteReservation(id);
+    private ReservationTime findReservationTime(ReservationRequest reservationRequest) {
+        return reservationTimeRepository.findById(reservationRequest.time());
+    }
+
+    private Reservation convertToReservation(ReservationRequest reservationRequest) {
+        ReservationTime reservationTime = findReservationTime(reservationRequest);
+        return reservationRequest.toEntity(reservationTime);
     }
 }

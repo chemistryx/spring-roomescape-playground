@@ -18,25 +18,20 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-
-
-@RequiredArgsConstructor
-@RestController
-
 public class ReservationRestController {
 
     private final ReservationService reservationService;
-
-    @GetMapping("/reservations")
-    public ResponseEntity<List<ReservationResponse>> findAllReservations() {
-        return ResponseEntity.ok().body(reservationService.findAllReservations());
-    }
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody @Valid ReservationRequest reservationRequest) {
         ReservationResponse newReservation = reservationService.createReservation(reservationRequest);
 
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.id())).body(newReservation);
+    }
+
+    @GetMapping("/reservations")
+    public ResponseEntity<List<ReservationResponse>> findAllReservations() {
+        return ResponseEntity.ok().body(reservationService.findAllReservations());
     }
 
     @DeleteMapping("/reservations/{id}")

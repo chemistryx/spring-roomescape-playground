@@ -7,7 +7,7 @@ import java.util.List;
 
 @Repository
 public interface ReservationRepository {
-    List<Reservation> findAllReservations();
-    Reservation createReservation(Reservation reservation);
-    void deleteReservation(Long id);
+    Reservation save(Reservation reservation);
+    List<Reservation> findAll();
+    void delete(Long id);
 }
