@@ -1,4 +1,4 @@
-package roomescape.domain.view;
+package roomescape.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +12,9 @@ public class ViewController {
 
     @GetMapping("/reservation")
     public String reservation() {
-        return "reservation";
+        return "new-reservation";
     }
+
+    @GetMapping("/time")
+    public String time() { return "time"; }
 }
