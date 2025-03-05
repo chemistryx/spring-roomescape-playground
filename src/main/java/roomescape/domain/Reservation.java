@@ -1,7 +1,6 @@
 package roomescape.domain;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import roomescape.error.ErrorMessage;
@@ -13,9 +12,9 @@ public class Reservation {
     private Long id;
     private String name;
     private LocalDate date;
-    private LocalTime time;
+    private Time time;
 
-    public Reservation(Long id, String name, LocalDate date, LocalTime time) {
+    public Reservation(Long id, String name, LocalDate date, Time time) {
         this.id = id;
         validateName(name);
         this.name = name;
@@ -23,17 +22,8 @@ public class Reservation {
         this.time = time;
     }
 
-    public Reservation(String name, LocalDate date, LocalTime time) {
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
-
-    public boolean isSameReservation(Long reservationId) {
-        if (this.id.equals(reservationId)) {
-            return true;
-        }
-        return false;
+    public Reservation(String name, LocalDate date, Time time) {
+        this(null, name, date, time);
     }
 
     public Long getId() {
@@ -48,7 +38,7 @@ public class Reservation {
         return date;
     }
 
-    public LocalTime getTime() {
+    public Time getTime() {
         return time;
     }
 

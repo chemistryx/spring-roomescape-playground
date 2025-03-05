@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class PageController {
-
     @GetMapping("/")
     public String home() {
         return "home";
@@ -13,6 +12,11 @@ public class PageController {
 
     @GetMapping("/reservation")
     public String reservations() {
-        return "reservation";
+        return "new-reservation";
+    }
+
+    @GetMapping("/time")
+    public String times() {
+        return "time";
     }
 }
