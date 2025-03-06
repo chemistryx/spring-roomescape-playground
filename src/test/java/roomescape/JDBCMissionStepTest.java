@@ -6,6 +6,8 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.dao.reservation.ReservationRowMapper;
 import roomescape.entity.Reservation;
+import roomescape.entity.Time;
 
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -48,8 +52,15 @@ public class JDBCMissionStepTest {
 
     @Test
     void 육단계() {
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "브라운", "2023-08-05",
+
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "15:40");
+
+        Long timeId = jdbcTemplate.queryForObject("SELECT id FROM time WHERE time = ?", Long.class,
                 "15:40");
+        assertThat(timeId).isNotNull();
+
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)", "브라운", "2023-08-05",
+                timeId);
 
         List<Reservation> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -65,14 +76,30 @@ public class JDBCMissionStepTest {
     @Test
     void 칠단계() {
 
-        Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
-        params.put("date", "2023-08-05");
-        params.put("time", "10:00");
+        Map<String, String> timeParams = new HashMap<>();
+        timeParams.put("time", "15:40");
+
+        int timeId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(timeParams)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/times/1")
+                .extract().path("id");
+
+        Map<String, Object> timeObject = new HashMap<>();
+        timeObject.put("id", timeId);
+        timeObject.put("time", "15:40");
+
+        Map<String, Object> reservationParams = new HashMap<>();
+        reservationParams.put("name", "브라운");
+        reservationParams.put("date", "2023-08-05");
+        reservationParams.put("time", timeObject);
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .body(params)
+                .body(reservationParams)
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(201)
@@ -81,6 +108,7 @@ public class JDBCMissionStepTest {
         Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
         assertThat(count).isEqualTo(1);
 
+        //getById 에서 예약번호를 가져오는게 불가능함
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
                 .then().log().all()

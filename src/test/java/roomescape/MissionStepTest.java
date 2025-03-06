@@ -1,5 +1,6 @@
 package roomescape;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import io.restassured.RestAssured;
@@ -41,7 +42,6 @@ public class MissionStepTest {
                 .statusCode(200);
     }
 
-    //임의의 List에 넣어준 갯수를 확인했던 테스트 코드이기 때문에 7단계 시점에서는 통과하지 않습니다.
     @Test
     @DisplayName("이단계")
     void 이단계() {
@@ -53,12 +53,26 @@ public class MissionStepTest {
 
         Integer initialCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM reservation", Integer.class);
 
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자1", "2025-02-23",
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "10:00");
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "11:00");
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "12:00");
+
+        Long timeId1 = jdbcTemplate.queryForObject("SELECT id FROM time WHERE time = ?", Long.class,
                 "10:00");
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자2", "2025-02-23",
+        assertThat(timeId1).isNotNull();
+        Long timeId2 = jdbcTemplate.queryForObject("SELECT id FROM time WHERE time = ?", Long.class,
                 "11:00");
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "사용자3", "2025-02-23",
+        assertThat(timeId2).isNotNull();
+        Long timeId3 = jdbcTemplate.queryForObject("SELECT id FROM time WHERE time = ?", Long.class,
                 "12:00");
+        assertThat(timeId3).isNotNull();
+
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)", "사용자1", "2025-02-23",
+                timeId1);
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)", "사용자2", "2025-02-23",
+                timeId2);
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)", "사용자3", "2025-02-23",
+                timeId3);
 
         RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -70,20 +84,39 @@ public class MissionStepTest {
     @Test
     @DisplayName("삼단계")
     void 삼단계() {
-        Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
-        params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+
+        Map<String, String> timeParams = new HashMap<>();
+        timeParams.put("time", "15:40");
+
+        int timeId = RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(timeParams)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/times/1")
+                .extract().path("id");
+
+        Map<String, Object> timeObject = new HashMap<>();
+        timeObject.put("id", timeId);
+        timeObject.put("time", "15:40");
+
+        Map<String, Object> reservationParams = new HashMap<>();
+        reservationParams.put("name", "브라운");
+        reservationParams.put("date", "2023-08-05");
+        reservationParams.put("time", timeObject);
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
-                .body(params)
+                .body(reservationParams)
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(201)
                 .header("Location", "/reservations/1")
-                .body("id", is(1));
+                .body("id", is(1))
+        ;
 
+        //getReservation 공백반환...
         RestAssured.given().log().all()
                 .when().get("/reservations")
                 .then().log().all()
