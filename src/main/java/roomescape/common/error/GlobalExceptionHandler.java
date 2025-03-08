@@ -1,6 +1,5 @@
 package roomescape.common.error;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,11 +17,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException.class)
-    protected ResponseEntity<ErrorResponse> handleBusinessException(final BusinessException exception) {
+    protected ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         ErrorResponse errorResponse = ErrorResponse.of(errorCode);
-        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(errorCode.getStatus()));
+        return ResponseEntity.status(errorResponse.getStatus()).body(errorResponse);
     }
 
-    // TODO exception handler
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<ErrorResponse> handleException(Exception exception) {
+        ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.SERVER_ERROR);
+        return ResponseEntity.status(errorResponse.getStatus()).body(errorResponse);
+    }
 }
