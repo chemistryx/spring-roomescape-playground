@@ -1,6 +1,7 @@
 package roomescape.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.entity.Reservation;
@@ -19,29 +20,27 @@ public class ReservationRepository {
 
     public ReservationRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.simpleJdbcInsert = new SimpleJdbcInsert(this.jdbcTemplate)
+        this.simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("reservation")
                 .usingGeneratedKeyColumns("id");
     }
 
     public List<Reservation> findAll() {
-        String sql = "SELECT id, name, date, time FROM reservation";
-        return jdbcTemplate.query(sql, (rs, rowNum) ->
-                new Reservation(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getObject("date", LocalDate.class),
-                        new Time(rs.getObject("time", LocalTime.class))
-                ));
+        String sql = """
+            SELECT r.id AS reservation_id, r.name, r.date, t.id AS time_id, t.time AS time_value 
+            FROM reservation r 
+            INNER JOIN time t ON r.time_id = t.id
+        """;
+        return jdbcTemplate.query(sql, reservationRowMapper);
     }
 
-    public Long save(Reservation reservation) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("name", reservation.getName());
-        params.put("date", reservation.getReservationDate());
-        params.put("time", reservation.getReservationTime().getTime());
+    public Long save(String name, LocalDate date, Long timeId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", name);
+        parameters.put("date", date);
+        parameters.put("time_id", timeId);
 
-        return simpleJdbcInsert.executeAndReturnKey(params).longValue();
+        return simpleJdbcInsert.executeAndReturnKey(parameters).longValue();
     }
 
     public void deleteById(Long id) {
@@ -52,6 +51,11 @@ public class ReservationRepository {
     public boolean existsById(Long id) {
         String sql = "SELECT COUNT(*) FROM reservation WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
-        return count != null && count == 1;
+        return count != null && count > 0;
     }
+
+    private final RowMapper<Reservation> reservationRowMapper = (rs, rowNum) -> {
+        Time time = new Time(rs.getLong("time_id"), rs.getObject("time_value", LocalTime.class));
+        return new Reservation(rs.getLong("reservation_id"), rs.getString("name"), rs.getObject("date", LocalDate.class), time);
+    };
 }

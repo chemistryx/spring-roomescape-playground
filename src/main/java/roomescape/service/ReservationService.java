@@ -5,35 +5,37 @@ import org.springframework.transaction.annotation.Transactional;
 import roomescape.domain.dto.ReservationRequest;
 import roomescape.domain.dto.ReservationResponse;
 import roomescape.domain.entity.Reservation;
+import roomescape.domain.entity.Time;
 import roomescape.exception.InvalidReservationRequestException;
 import roomescape.repository.ReservationRepository;
-import roomescape.valid.ReservationValidator;
+import roomescape.repository.TimeRepository;
 
 import java.util.List;
 
 @Service
 public class ReservationService {
     private final ReservationRepository reservationRepository;
+    private final TimeRepository timeRepository;
 
-    public ReservationService(ReservationRepository reservationRepository) {
+    public ReservationService(ReservationRepository reservationRepository, TimeRepository timeRepository) {
         this.reservationRepository = reservationRepository;
+        this.timeRepository = timeRepository;
     }
 
     public List<ReservationResponse> findAll() {
         return reservationRepository.findAll().stream()
-                .map(ReservationResponse::from)
+                .map(ReservationResponse::new)
                 .toList();
     }
 
     @Transactional
     public ReservationResponse save(ReservationRequest request) {
-        ReservationValidator.validate(request);
-        Reservation reservation = request.toEntity();
-        Long id = reservationRepository.save(reservation);
-        return new ReservationResponse(id, reservation.getName(), reservation.getReservationDate(), reservation.getReservationTime());
+        Time time = timeRepository.findById(request.timeId());
+        Long id = reservationRepository.save(request.name(), request.date(), time.getId());
+        Reservation reservation = new Reservation(id, request.name(), request.date(), time);
+        return new ReservationResponse(reservation);
     }
 
-    @Transactional
     public void deleteById(Long id) {
         if (id == null || !reservationRepository.existsById(id)) {
             throw new InvalidReservationRequestException("이미 삭제된 예약입니다.");

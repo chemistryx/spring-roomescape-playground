@@ -12,6 +12,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
+    @ExceptionHandler(InvalidTimeRequestException.class)
+    public ResponseEntity<String> handleInvalidTimeRequestException(InvalidTimeRequestException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
     @ExceptionHandler(NotFoundReservationException.class)
     public ResponseEntity<String> handleNotFoundReservationException(NotFoundReservationException e) {
         return ResponseEntity.badRequest().body(e.getMessage());

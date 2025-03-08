@@ -1,19 +1,19 @@
 package roomescape.repository;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import roomescape.domain.entity.Reservation;
-import roomescape.domain.entity.Time;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @JdbcTest
@@ -27,41 +27,55 @@ public class ReservationRepositoryTest {
     @BeforeEach
     void setUp() {
         reservationRepository = new ReservationRepository(jdbcTemplate);
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.update("DELETE FROM reservation");
+        jdbcTemplate.update("INSERT INTO TIME (ID, TIME) VALUES (?, ?)", 1L, "10:00");
+        jdbcTemplate.update("INSERT INTO TIME (ID, TIME) VALUES (?, ?)", 2L, "11:00");
     }
 
     @Test
-    void 예약을_저장하고_조회할_수_있다() {
-        // given
-        Reservation reservation = new Reservation(null, "브라운", LocalDate.of(2023, 8, 5), new Time(LocalTime.of(10, 0)));
+    void testFindAll() {
+        Long timeId1 = 1L;
+        Long timeId2 = 2L;
+        LocalDate date1 = LocalDate.now().plusDays(1);
+        LocalDate date2 = LocalDate.now().plusDays(2);
+        reservationRepository.save("seongmin", date1, timeId1);
+        reservationRepository.save("theo", date2, timeId2);
 
-        // when
-        Long id = reservationRepository.save(reservation);
         List<Reservation> reservations = reservationRepository.findAll();
 
-        // then
         assertAll(
-                () -> assertThat(id).isNotNull(),
-                () -> assertThat(reservations).hasSize(1),
-                () -> assertThat(reservations.get(0).getName()).isEqualTo("브라운")
+                () -> assertThat(reservations).hasSize(2),
+                () -> assertThat(reservations)
+                        .extracting("name", "reservationDate", "reservationTime.time")
+                        .containsExactlyInAnyOrder(
+                                tuple("seongmin", date1, LocalTime.of(10, 0)),
+                                tuple("theo", date2, LocalTime.of(11, 0))
+                        )
         );
     }
 
     @Test
-    void 예약을_삭제할_수_있다() {
-        // given
-        Reservation reservation = new Reservation(null, "브라운", LocalDate.of(2023, 8, 5), new Time(LocalTime.of(10, 0)));
-        Long id = reservationRepository.save(reservation);
+    void testSave() {
+        Long timeId = 1L;
+        Long id = reservationRepository.save("seongmin", LocalDate.now().plusDays(1), timeId);
+        assertAll(
+                () -> assertThat(id).isNotNull(),
+                () -> assertThat(reservationRepository.existsById(id)).isTrue()
+        );
+    }
 
-        // when
+    @Test
+    void testDeleteById() {
+        Long timeId = 1L;
+        Long id = reservationRepository.save("seongmin", LocalDate.now().plusDays(1), timeId);
         reservationRepository.deleteById(id);
-        List<Reservation> reservations = reservationRepository.findAll();
+        assertThat(reservationRepository.existsById(id)).isFalse();
+    }
 
-        // then
-        assertThat(reservations).isEmpty();
+    @Test
+    void testExistsById() {
+        Long timeId = 1L;
+        Long id = reservationRepository.save("seongmin", LocalDate.now().plusDays(1), timeId);
+        assertThat(reservationRepository.existsById(id)).isTrue();
+        assertThat(reservationRepository.existsById(100L)).isFalse();
     }
 }
