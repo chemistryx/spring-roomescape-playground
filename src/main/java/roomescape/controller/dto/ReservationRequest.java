@@ -1,24 +1,24 @@
 package roomescape.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import roomescape.service.dto.ReservationSaveCommand;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class ReservationRequest {
     private final String name;
     private final LocalDate date;
-    private final LocalTime time;
+    private final Long timeId;
 
-    public ReservationRequest(String name, LocalDate date, LocalTime time) {
-        validate(name, date, time);
+    public ReservationRequest(String name, LocalDate date, @JsonProperty("time") Long timeId) {
+        validate(name, date, timeId);
         this.name = name;
         this.date = date;
-        this.time = time;
+        this.timeId = timeId;
     }
 
     public ReservationSaveCommand toCommand() {
-        return new ReservationSaveCommand(name, date, time);
+        return new ReservationSaveCommand(name, date, timeId);
     }
 
     public String getName() {
@@ -29,19 +29,19 @@ public class ReservationRequest {
         return date;
     }
 
-    public LocalTime getTime() {
-        return time;
+    public Long getTime() {
+        return timeId;
     }
 
-    private void validate(String name, LocalDate date, LocalTime time) {
+    private void validate(String name, LocalDate date, Long timeId) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("이름은 필수입니다.");
         }
         if (date == null) {
             throw new IllegalArgumentException("날짜는 필수입니다.");
         }
-        if (time == null) {
-            throw new IllegalArgumentException("시간은 필수입니다.");
+        if (timeId == null || timeId <= 0) {
+            throw new IllegalArgumentException("옳바르지 않은 id 값입니다");
         }
     }
 }

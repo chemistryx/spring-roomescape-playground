@@ -1,16 +1,16 @@
 package roomescape.service.dto;
 
 import roomescape.domain.Reservation;
+import roomescape.domain.Time;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public record ReservationSaveCommand(
         String name,
         LocalDate date,
-        LocalTime time
+        Long timeId
 ) {
-    public Reservation toEntity() {
+    public Reservation toEntity(Time time) {
         return new Reservation(name, date, time);
     }
 }

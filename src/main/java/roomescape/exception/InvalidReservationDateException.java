@@ -1,6 +1,6 @@
 package roomescape.exception;
 
-public class InvalidReservationDateException extends RuntimeException {
+public class InvalidReservationDateException extends RoomEscapeException {
     public InvalidReservationDateException(String message) {
         super(message);
     }

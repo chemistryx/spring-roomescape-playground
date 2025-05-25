@@ -3,19 +3,18 @@ package roomescape.domain;
 import roomescape.exception.InvalidReservationDateException;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Reservation {
 
     private Long id;
     private String name;
     private LocalDate date;
-    private LocalTime time;
+    private Time time;
 
     public Reservation() {
     }
 
-    public Reservation(Long id, String name, LocalDate date, LocalTime time) {
+    public Reservation(Long id, String name, LocalDate date, Time time) {
         validateName(name);
         validateDate(date);
         validateTime(time);
@@ -25,7 +24,7 @@ public class Reservation {
         this.time = time;
     }
 
-    public Reservation(String name, LocalDate date, LocalTime time) {
+    public Reservation(String name, LocalDate date, Time time) {
         this(null, name, date, time);
     }
 
@@ -36,6 +35,7 @@ public class Reservation {
     public Long getId() {
         return id;
     }
+
     public String getName() {
         return name;
     }
@@ -44,7 +44,7 @@ public class Reservation {
         return date;
     }
 
-    public LocalTime getTime() {
+    public Time getTime() {
         return time;
     }
 
@@ -63,7 +63,7 @@ public class Reservation {
         }
     }
 
-    private void validateTime(LocalTime time) {
+    private void validateTime(Time time) {
         if (time == null) {
             throw new IllegalArgumentException("시간은 필수입니다.");
         }

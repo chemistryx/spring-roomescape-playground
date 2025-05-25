@@ -44,4 +44,29 @@ public class GlobalExceptionHandler {
         ErrorResult errorResult = new ErrorResult("INVALID_RESERVATION_DATE", e.getMessage());
         return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(CannotDeleteTimeWithExistingReservationException.class)
+    public ResponseEntity<ErrorResult> handleCannotDeleteTime(CannotDeleteTimeWithExistingReservationException e) {
+        ErrorResult errorResult = new ErrorResult("CANNOT_DELETE_RESERVED_TIME", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingRequiredFieldException.class)
+    public ResponseEntity<ErrorResult> handleCannotDeleteTime(MissingRequiredFieldException e) {
+        ErrorResult errorResult = new ErrorResult("MISSING_REQUIRED_FIELD", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateTimeException.class)
+    public ResponseEntity<ErrorResult> handleCannotDeleteTime(DuplicateTimeException e) {
+        ErrorResult errorResult = new ErrorResult("DUPLICATE_TIME", e.getMessage());
+        return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RoomEscapeException.class)
+    public ResponseEntity<ErrorResult> handleCannotDeleteTime(RoomEscapeException e) {
+        ErrorResult errorResult = new ErrorResult(e.getErrorCode(), e.getMessage());
+        return new ResponseEntity<>(errorResult, e.getHttpStatus());
+    }
+
 }
