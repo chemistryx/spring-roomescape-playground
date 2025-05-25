@@ -1,18 +1,19 @@
 package roomescape.domain;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Objects;
+import lombok.Getter;
 import roomescape.exception.InvalidReservationException;
 
+@Getter
 public class Reservation {
 
     private final Integer id;
     private final String name;
     private final LocalDate date;
-    private final LocalTime time;
+    private final Time time;
 
-    public Reservation(Integer id, String name, LocalDate date, LocalTime time) {
+    public Reservation(Integer id, String name, LocalDate date, Time time) {
         validate(name, date, time);
         this.id = id;
         this.name = name;
@@ -20,14 +21,7 @@ public class Reservation {
         this.time = time;
     }
 
-    public Reservation() {
-        this.id = null;
-        this.name = null;
-        this.date = null;
-        this.time = null;
-    }
-
-    private void validate(String name, LocalDate date, LocalTime time) {
+    private void validate(String name, LocalDate date, Time time) {
         if (name == null || name.trim().isEmpty()) {
             throw new InvalidReservationException("이름은 필수입니다.");
         }
@@ -39,26 +33,14 @@ public class Reservation {
         }
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public LocalTime getTime() {
-        return time;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Reservation that = (Reservation) o;
         return Objects.equals(id, that.id);
     }
