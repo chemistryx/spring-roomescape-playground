@@ -1,6 +1,7 @@
 package roomescape.dto;
 
 import roomescape.entity.Reservation;
+import roomescape.entity.Time;
 import roomescape.exception.EmptyValueException;
 import roomescape.utils.DateTimeParser;
 
@@ -12,16 +13,16 @@ public class ReservationRequest {
 
     private final String date;
     private final String name;
-    private final String time;
+    private final Long time;
 
-    public ReservationRequest(String date, String name, String time) {
+    public ReservationRequest(String date, String name, Long time) {
         this.date = date;
         this.name = name;
         this.time = time;
     }
 
-    public Reservation toEntity() {
-        return new Reservation(name, DateTimeParser.parseDate(date), DateTimeParser.parseTime(time));
+    public Reservation toEntity(Time time) {
+        return new Reservation(name, DateTimeParser.parseDate(date), time);
     }
 
     public void validateRequiredFields() {
@@ -39,7 +40,7 @@ public class ReservationRequest {
         if (name == null || name.isBlank()) {
             results.add("name");
         }
-        if (time == null || time.isBlank()) {
+        if (time == null) {
             results.add("time");
         }
         return results;
@@ -53,7 +54,7 @@ public class ReservationRequest {
         return name;
     }
 
-    public String getTime() {
+    public Long getTime() {
         return time;
     }
 }

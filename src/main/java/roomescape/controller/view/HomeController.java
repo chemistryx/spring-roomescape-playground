@@ -13,6 +13,11 @@ public class HomeController {
 
     @GetMapping("/reservation")
     public String reservations() {
-        return "reservation";
+        return "new-reservation";
+    }
+
+    @GetMapping("/time")
+    public String time() {
+        return "time";
     }
 }

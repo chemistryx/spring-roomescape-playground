@@ -1,10 +1,7 @@
 package roomescape;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +9,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.Nested;
+import roomescape.dao.ReservationDAO;
+import roomescape.dao.TimeDAO;
+import roomescape.dto.ReservationResponse;
+import roomescape.entity.Reservation;
+import roomescape.entity.Time;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -29,6 +32,18 @@ public class MissionStepTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private TimeDAO timeDAO;
+    @Autowired
+    private ReservationDAO reservationDAO;
+    private Time time;
+
+    @BeforeEach
+    void setUp() {
+        LocalTime insertTime = LocalTime.parse("15:40");
+        Long timeId = timeDAO.insert(new Time(insertTime));
+        time = new Time(timeId, insertTime);
+    }
 
     @Test
     void 일단계() {
@@ -68,7 +83,7 @@ public class MissionStepTest {
             params = new HashMap<>();
             params.put("name", "브라운");
             params.put("date", "2023-08-05");
-            params.put("time", "15:40");
+            params.put("time", time.getId().toString());
         }
 
         @Test
@@ -129,7 +144,7 @@ public class MissionStepTest {
             Map<String, String> emptyParams = new HashMap<>();
             emptyParams.put("name", "");
             emptyParams.put("date", "2023-08-05");
-            emptyParams.put("time", "15:40");
+            emptyParams.put("time", time.getId().toString());
 
             RestAssured.given().log().all()
                     .contentType(ContentType.JSON)
@@ -145,7 +160,7 @@ public class MissionStepTest {
             Map<String, String> emptyParams = new HashMap<>();
             emptyParams.put("name", "브라운");
             emptyParams.put("date", "2023-8-5");
-            emptyParams.put("time", "15:40");
+            emptyParams.put("time", time.getId().toString());
 
             RestAssured.given().log().all()
                     .contentType(ContentType.JSON)
@@ -170,38 +185,106 @@ public class MissionStepTest {
 
     @Test
     void 육단계() {
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "브라운", LocalDate.parse("2023-08-05"), LocalTime.parse("15:40"));
+        reservationDAO.insert(new Reservation("브라운", LocalDate.parse("2023-08-05"),time));
 
-        List<ReservationDeserialization> reservations = RestAssured.given().log().all()
+        List<ReservationResponse> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200).extract()
-                .jsonPath().getList(".", ReservationDeserialization.class);
+                .jsonPath().getList(".", ReservationResponse.class);
 
-        Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+        List<Reservation> findReservation = reservationDAO.findAll();
 
-        assertThat(reservations.size()).isEqualTo(count);
+        assertThat(reservations.size()).isEqualTo(findReservation.size());
     }
 
+    @Test
+    void 칠단계() {
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "브라운");
+        params.put("date", "2023-08-05");
+        params.put("time", time.getId().toString());
 
-    private static class ReservationDeserialization {
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/reservations");
 
-        private final Long id;
-        private final String name;
-        private final LocalDate date;
-        private final String time;
+        Integer count = reservationDAO.findAll().size();
+        assertThat(count).isEqualTo(1);
 
-        @JsonCreator
-        protected ReservationDeserialization(
-                @JsonProperty("id") Long id,
-                @JsonProperty("name") String name,
-                @JsonProperty("date") LocalDate date,
-                @JsonProperty("time") String time
-        ) {
-            this.id = id;
-            this.name = name;
-            this.date = date;
-            this.time = time;
+        RestAssured.given().log().all()
+                .when().delete("/reservations/1")
+                .then().log().all()
+                .statusCode(204);
+
+        Integer countAfterDelete = reservationDAO.findAll().size();
+        assertThat(countAfterDelete).isEqualTo(0);
+    }
+
+    @Nested
+    class 팔단계 {
+
+        @BeforeEach
+        void setUp() {
+            Map<String, String> params = new HashMap<>();
+            params.put("time", "10:00");
+
+            RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(params)
+                    .when().post("/times");
         }
+
+
+        @Test
+        void 시간_등록이_성공하면_201_상태코드를_응답해야한다() {
+            Map<String, String> params = new HashMap<>();
+            params.put("time", "18:00");
+
+            RestAssured.given().log().all()
+                    .contentType(ContentType.JSON)
+                    .body(params)
+                    .when().post("/times")
+                    .then().log().all()
+                    .statusCode(201)
+                    .header("Location", "/times");
+        }
+
+        @Test
+        void 시간조회가_성공하면_200_상태코드를_응답해야한다() {
+
+            RestAssured.given().log().all()
+                    .when().get("/times")
+                    .then().log().all()
+                    .statusCode(200)
+                    .body("size()", is(2));
+        }
+
+        @Test
+        void 시간이_삭제되면_204_상태코드를_응답해야_한다() {
+            RestAssured.given().log().all()
+                    .when().delete("/times/1")
+                    .then().log().all()
+                    .statusCode(204);
+        }
+    }
+
+    @Test
+    void 구단계() {
+        Map<String, String> reservation = new HashMap<>();
+        reservation.put("name", "브라운");
+        reservation.put("date", "2023-08-05");
+        reservation.put("time", "2");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(reservation)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(400);
     }
 }
