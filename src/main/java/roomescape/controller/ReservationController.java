@@ -3,10 +3,12 @@ package roomescape.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.service.ReservationService;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,9 +32,13 @@ public class ReservationController {
 
     @PostMapping
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
+        Reservation savedReservation = reservationService.createReservation(request);
+        URI location = URI.create("/reservations/" + savedReservation.getId());
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ReservationResponse.from(reservationService.createReservation(request)));
+                .location(location)
+                .body(ReservationResponse.from(savedReservation));
     }
 
     @DeleteMapping("/{id}")
