@@ -9,4 +9,8 @@ public record Reservation(
         LocalDate date,
         LocalTime time
 ) {
+
+    public static Reservation of(final Long id, final String name, final LocalDate date, final LocalTime time) {
+        return new Reservation(id, name, date, time);
+    }
 }
