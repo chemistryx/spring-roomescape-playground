@@ -6,11 +6,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.exception.BadRequestException;
+import roomescape.reservation.dto.ReservationRequest;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -96,5 +101,15 @@ public class MissionStepTest {
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("예약 요청 날짜가 비어 있을 경우 예외가 발생한다")
+    void shouldThrowExceptionWhenEmptyReservationRequestDate() {
+        // given // when // then
+        assertThrows(
+                BadRequestException.class,
+                () -> new ReservationRequest("dd", null, LocalTime.of(11, 30))
+        );
     }
 }
