@@ -1,15 +1,16 @@
 package roomescape.domain;
 
+import roomescape.exception.ReservationException;
+
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Reservation {
     private final Long id;
     private final String name;
     private final LocalDate date;
-    private final LocalTime time;
+    private final Time time;
 
-    private Reservation(Long id, String name, LocalDate date, LocalTime time) {
+    private Reservation(Long id, String name, LocalDate date, Time time) {
         validate(name, date, time);
         this.id = id;
         this.name = name;
@@ -17,31 +18,15 @@ public class Reservation {
         this.time = time;
     }
 
-    public static Reservation of(Long id, String name, LocalDate date, LocalTime time) {
-        return new Reservation(id, name, date, time);
-    }
-
-    public static Reservation create(String name, LocalDate date, LocalTime time) {
+    public static Reservation create(String name, LocalDate date, Time time) {
         return new Reservation(null, name, date, time);
     }
 
-    public Long getId() {
-        return id;
+    public static Reservation of(Long id, String name, LocalDate date, Time time) {
+        return new Reservation(id, name, date, time);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public LocalTime getTime() {
-        return time;
-    }
-
-    private void validate(String name, LocalDate date, LocalTime time) {
+    private void validate(String name, LocalDate date, Time time) {
         validateName(name);
         validateDate(date);
         validateTime(time);
@@ -49,20 +34,27 @@ public class Reservation {
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("[ERROR] 이름은 필수 입력 항목입니다.");
+            throw new ReservationException("[ERROR] 예약자 이름을 입력해주세요.");
         }
     }
 
     private void validateDate(LocalDate date) {
         if (date == null) {
-            throw new IllegalArgumentException("[ERROR] 날짜는 필수 입력 항목입니다.");
+            throw new ReservationException("[ERROR] 예약 날짜를 선택해주세요.");
+        }
+        if (date.isBefore(LocalDate.now())) {
+            throw new ReservationException("[ERROR] 지난 날짜로는 예약할 수 없습니다. 오늘 혹은 이후 날짜를 선택해주세요.");
         }
     }
 
-    private void validateTime(LocalTime time) {
+    private void validateTime(Time time) {
         if (time == null) {
-            throw new IllegalArgumentException("[ERROR] 시간은 필수 입력 항목입니다.");
+            throw new ReservationException("[ERROR] 예약 시간을 선택해주세요.");
         }
     }
-}
 
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public LocalDate getDate() { return date; }
+    public Time getTime() { return time; }
+}
