@@ -11,4 +11,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleInvalidReservationException(InvalidReservationException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
+
+    @ExceptionHandler(InvalidTimeException.class)
+    public ResponseEntity<String> handleInvalidTimeException(InvalidTimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
 }

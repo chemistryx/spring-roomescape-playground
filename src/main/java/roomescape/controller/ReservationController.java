@@ -1,5 +1,6 @@
 package roomescape.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +37,7 @@ public class ReservationController {
         URI location = URI.create("/reservations/" + savedReservation.getId());
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .location(location)
+                .created(location)
                 .body(ReservationResponse.from(savedReservation));
     }
 
