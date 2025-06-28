@@ -25,7 +25,7 @@ public class TimeController {
 
     @PostMapping
     public ResponseEntity<TimeResponseDto> addTime(@RequestBody TimeRequestDto timeRequestDto) {
-        TimeResponseDto responseDto = timeService.addTime(timeRequestDto);
+        TimeResponseDto responseDto = timeService.addReservationTime(timeRequestDto);
         URI location = URI.create("/times/" + responseDto.getId());
         return ResponseEntity.created(location).body(responseDto);
     }

@@ -2,10 +2,9 @@ package roomescape.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import roomescape.model.dto.ReservationRequestDto;
 import roomescape.model.entity.Reservation;
 import roomescape.model.entity.Time;
 
@@ -16,6 +15,7 @@ public class ReservationRepository {
     private final JdbcTemplate jdbcTemplate;
 
     private final SimpleJdbcInsert simpleJdbcInsert;
+
 
     private static final RowMapper<Reservation> reservationRowMapper = (resultSet, rowNum) -> {
 
@@ -70,13 +70,25 @@ public class ReservationRepository {
         return jdbcTemplate.queryForObject(sql, reservationRowMapper, id);
     }
 
-    public long save(final ReservationRequestDto requestDto) {
-        BeanPropertySqlParameterSource param = new BeanPropertySqlParameterSource(requestDto);
-        return simpleJdbcInsert.executeAndReturnKey(param).longValue();
+    public Reservation save(final Reservation reservation) {
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("name", reservation.getName())
+                .addValue("date", reservation.getDate().toString())
+                .addValue("time_id", reservation.getTime().getId());
+
+        long id = simpleJdbcInsert.executeAndReturnKey(params).longValue();
+
+        return Reservation.builder()
+                .id(id)
+                .date(reservation.getDate())
+                .time(reservation.getTime())
+                .name(reservation.getName())
+                .build();
     }
 
 
-    public int delete(final Long id) {
+    public int deleteById(final Long id) {
         int result = jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", id);
         return result;
     }

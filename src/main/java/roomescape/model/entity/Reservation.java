@@ -1,34 +1,23 @@
 package roomescape.model.entity;
 
 import lombok.Builder;
+import lombok.Getter;
 import roomescape.exception.BadRequestException;
-import roomescape.model.dto.ReservationResponseDto;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
+@Getter
+@Builder
 public class Reservation {
+
     private final long id;
+
     private final String name;
+
     private final LocalDate date;
+
     private final Time time;
-
-    @Builder
-    private Reservation(final long id, final String name, final LocalDate date, final Time time) {
-        validateArgumentNotEmpty(name, date, time);
-        this.id = id;
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
-
-    public ReservationResponseDto toDto() {
-        return new ReservationResponseDto(id, name, date, time.toDto());
-    }
-
-    public Time getTime() {
-        return time;
-    }
 
     @Override
     public boolean equals(final Object o) {

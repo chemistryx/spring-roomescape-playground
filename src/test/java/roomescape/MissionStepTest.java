@@ -3,16 +3,20 @@ package roomescape;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import roomescape.controller.ReservationController;
+import roomescape.model.entity.Time;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -138,6 +142,18 @@ public class MissionStepTest {
     }
 
     @Test
+    @DisplayName("날짜/시간 중복 예약시 예외 발생 테스트")
+    void duplicatedReservationFail() {
+        LocalDate date = LocalDate.of(2025, 6, 27);
+        long timeId = 1L;
+        Time time = Time.builder()
+                .id(timeId)
+                .time(LocalTime.of(10, 0))
+                .build();
+
+    }
+
+    @Test
     void testLayeredSeparation() {
         boolean isJdbcTemplateInjected = false;
 
@@ -147,9 +163,10 @@ public class MissionStepTest {
                 break;
             }
         }
-
         assertThat(isJdbcTemplateInjected).isFalse();
     }
 
 
 }
+
+

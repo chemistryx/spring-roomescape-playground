@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import roomescape.model.dto.TimeRequestDto;
 import roomescape.model.entity.Time;
 
 import java.util.List;
@@ -15,6 +14,11 @@ public class TimeRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert simpleJdbcInsert;
+    private static final RowMapper<Time> timeRowMapper =
+            (resultSet, rowNum) -> Time.builder()
+                    .id(resultSet.getLong("id"))
+                    .time(resultSet.getTime("time").toLocalTime())
+                    .build();
 
     public TimeRepository(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -24,21 +28,25 @@ public class TimeRepository {
                 .usingGeneratedKeyColumns("id");
     }
 
-    public long save(TimeRequestDto timeReqeustDto) {
-        BeanPropertySqlParameterSource param = new BeanPropertySqlParameterSource(timeReqeustDto);
-        return simpleJdbcInsert.executeAndReturnKey(param).longValue();
+    public Time save(Time time) {
+        BeanPropertySqlParameterSource param = new BeanPropertySqlParameterSource(time);
+        long id = simpleJdbcInsert.executeAndReturnKey(param).longValue();
+        return Time.builder()
+                .id(id)
+                .time(time.getTime())
+                .build();
     }
 
     public List<Time> findAll() {
-        RowMapper<Time> timeRowMapper = (resultSet, rowNum) ->
-                Time.builder()
-                        .id(resultSet.getLong("id"))
-                        .time(resultSet.getTime("time").toLocalTime())
-                        .build();
         return jdbcTemplate.query("select id, time from time", timeRowMapper);
     }
 
-    public int delete(long id) {
+    public Time findById(long id) {
+        String sql = "select id, time from time where id = ?";
+        return jdbcTemplate.queryForObject(sql, timeRowMapper, id);
+    }
+
+    public int deleteById(long id) {
         return jdbcTemplate.update("delete from time where id = ? ", id);
     }
 }

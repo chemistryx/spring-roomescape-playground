@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 public class ReservationResponseDto {
+
     private long id;
 
     private String name;
@@ -15,7 +16,6 @@ public class ReservationResponseDto {
 
     @JsonProperty("time")
     private TimeResponseDto timeResponseDto;
-
 
     public ReservationResponseDto(final long id, final String name, final LocalDate date, final TimeResponseDto timeResponseDto) {
         this.id = id;
