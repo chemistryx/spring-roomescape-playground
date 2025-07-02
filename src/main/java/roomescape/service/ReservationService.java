@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import roomescape.dao.ReservationDao;
+import roomescape.dao.TimeDao;
 import roomescape.domain.Reservation;
+import roomescape.domain.Time;
 import roomescape.dto.ReservationRequestDto;
 import roomescape.dto.ReservationResponseDto;
 
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 public class ReservationService {
 
     private final ReservationDao reservationDAO;
+    private final TimeDao timeDao;
 
     public List<ReservationResponseDto> findAllReservations() {
         return List.copyOf(reservationDAO.findAll()
@@ -26,8 +29,15 @@ public class ReservationService {
     }
 
     public ReservationResponseDto addReservation(ReservationRequestDto requestDto) {
-        Reservation reservation = reservationDAO.addReservation(requestDto);
-        return new ReservationResponseDto(reservation);
+        Time time = timeDao.findById(requestDto.getTimeId());
+        Reservation reservation = new Reservation(
+                null,
+                requestDto.getName(),
+                requestDto.getDate(),
+                time
+        );
+        Reservation newReservation = reservationDAO.addReservation(reservation);
+        return new ReservationResponseDto(newReservation);
     }
 
     public void deleteReservation(Long id) {

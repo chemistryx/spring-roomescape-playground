@@ -59,7 +59,7 @@ function saveRow(event) {
   const inputs = row.querySelectorAll('input');
 
   const time = {
-    time: inputs[0].value,
+    timeValue: inputs[0].value,
   };
 
   requestCreate(time)
@@ -72,7 +72,7 @@ function saveRow(event) {
 function updateRowWithTimeData(row, data) {
   const cells = row.cells;
   cells[0].textContent = data.id;
-  cells[1].textContent = data.time;
+  cells[1].textContent = data.timeValue;
 
   // 버튼 변경: 삭제 버튼으로 변경
   cells[2].innerHTML = '';
@@ -115,7 +115,7 @@ function renderTimes(data) {
 }
 
 function insertTimeRow(row, time) {
-  ['id', 'time'].forEach((field, index) => {
+  ['id', 'timeValue'].forEach((field, index) => {
     row.insertCell(index).textContent = time[field];
   });
 

@@ -29,7 +29,7 @@ function createFormControl(timeData) {
   timeData.forEach(time => {
     const option = document.createElement('option');
     option.value = time.id;
-    option.textContent = time.time;
+    option.textContent = time.timeValue;
     select.appendChild(option);
   });
 
@@ -61,7 +61,7 @@ function insertReservationRow(row, reservation) {
     row.insertCell(index).textContent = reservation[field];
   });
 
-  row.insertCell(3).textContent = reservation.time.time;
+  row.insertCell(3).textContent = reservation.time.timeValue;
 
   const actionCell = row.insertCell(4);
   actionCell.appendChild(createActionButton('삭제', 'btn-danger', deleteRow));
@@ -129,7 +129,7 @@ function saveRow(event) {
   const reservation = {
     name: nameInput.value,
     date: dateInput.value,
-    time: timeSelect.value
+    timeId: timeSelect.value
   };
 
   requestCreate(reservation)
