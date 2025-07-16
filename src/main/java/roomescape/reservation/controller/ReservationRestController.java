@@ -11,10 +11,10 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-public class ReservationApiController {
+public class ReservationRestController {
     private final ReservationService reservationService;
 
-    public ReservationApiController(ReservationService reservationService) {
+    public ReservationRestController(ReservationService reservationService) {
         this.reservationService = reservationService;
     }
 
@@ -28,7 +28,7 @@ public class ReservationApiController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest request) {
-        Reservation newReservation = reservationService.save(Reservation.of(request));
+        Reservation newReservation = reservationService.save(request);
 
         URI location = URI.create("/reservations/" + newReservation.id());
         return ResponseEntity
