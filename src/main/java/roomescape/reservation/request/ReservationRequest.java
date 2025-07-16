@@ -1,23 +1,12 @@
 package roomescape.reservation.request;
 
+import jakarta.annotation.Nonnull;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
-public class ReservationRequest {
+public record ReservationRequest(
+    @Nonnull LocalDate date,
+    @Nonnull String name,
+    @Nonnull Long time
+) {
 
-    public LocalDate date;
-    public String name;
-    public LocalTime time;
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public LocalTime getTime() {
-        return time;
-    }
 }
