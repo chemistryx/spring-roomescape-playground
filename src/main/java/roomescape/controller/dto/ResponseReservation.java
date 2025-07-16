@@ -19,7 +19,7 @@ public record ResponseReservation(
                 reservation.id(),
                 reservation.name(),
                 reservation.date(),
-                reservation.time()
+                reservation.time().time()
         );
     }
 }

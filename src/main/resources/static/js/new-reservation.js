@@ -14,7 +14,10 @@ function fetchTimes() {
         const timeSelectControl = createFormControl(data);
         appendFormControlToDocument(timeSelectControl);
       })
-      .catch(error => console.error('Error fetching time:', error));
+      .catch(error => {
+        alert(error.message)
+        console.error('Error fetching time:', error)
+      });
 }
 
 function createFormControl(timeData) {
@@ -23,7 +26,8 @@ function createFormControl(timeData) {
   select.id = 'time-select';
 
   const defaultOption = document.createElement('option');
-  defaultOption.textContent = "시간 선택";
+    defaultOption.value = "";
+    defaultOption.textContent = "시간 선택";
   select.appendChild(defaultOption);
 
   timeData.forEach(time => {
@@ -43,7 +47,10 @@ function appendFormControlToDocument(control) {
 function fetchReservations() {
   requestRead()
       .then(renderReservations)
-      .catch(error => console.error('Error fetching reservations:', error));
+      .catch(error => {
+        alert(error.message)
+        console.error('Error fetching reservations:', error)
+      });
 }
 
 function renderReservations(data) {
@@ -61,7 +68,7 @@ function insertReservationRow(row, reservation) {
     row.insertCell(index).textContent = reservation[field];
   });
 
-  row.insertCell(3).textContent = reservation.time.time;
+  row.insertCell(3).textContent = reservation.time;
 
   const actionCell = row.insertCell(4);
   actionCell.appendChild(createActionButton('삭제', 'btn-danger', deleteRow));
@@ -126,15 +133,24 @@ function saveRow(event) {
   const dateInput = row.querySelector('input[type="date"]');
   const timeSelect = row.querySelector('select');
 
+    const timeId = timeSelect.value;
+    if (!timeId) {
+        alert("시간을 선택해 주세요.");
+        return;
+    }
+
   const reservation = {
     name: nameInput.value,
     date: dateInput.value,
-    time: timeSelect.value
+    timeId: Number(timeId)
   };
 
   requestCreate(reservation)
       .then(data => updateRowWithReservationData(row, data))
-      .catch(error => console.error('Error:', error));
+      .catch(error => {
+        alert(error.message)
+        console.error('Error:', error)
+      });
 
   isEditing = false;  // isEditing 값을 false로 설정
 }
@@ -144,7 +160,7 @@ function updateRowWithReservationData(row, data) {
   cells[0].textContent = data.id;
   cells[1].textContent = data.name;
   cells[2].textContent = data.date;
-  cells[3].textContent = data.time.time;
+  cells[3].textContent = data.time;
 
   // 버튼 변경: 삭제 버튼으로 변경
   cells[4].innerHTML = '';
@@ -167,7 +183,10 @@ function deleteRow(event) {
 
   requestDelete(reservationId)
       .then(() => row.remove())
-      .catch(error => console.error('Error:', error));
+      .catch(error => {
+        alert(error.message)
+        console.error('Error:', error)
+      });
 }
 
 function requestCreate(reservation) {
@@ -178,17 +197,19 @@ function requestCreate(reservation) {
   };
 
   return fetch(RESERVATION_API_ENDPOINT, requestOptions)
-      .then(response => {
+      .then(async response => {
         if (response.status === 201) return response.json();
-        throw new Error('Create failed');
+        const errorText = await response.text();
+        throw new Error(errorText);
       });
 }
 
 function requestRead() {
   return fetch(RESERVATION_API_ENDPOINT)
-      .then(response => {
+      .then(async response => {
         if (response.status === 200) return response.json();
-        throw new Error('Read failed');
+        const errorText = await response.text();
+        throw new Error(errorText);
       });
 }
 
@@ -198,15 +219,19 @@ function requestDelete(id) {
   };
 
   return fetch(`${RESERVATION_API_ENDPOINT}/${id}`, requestOptions)
-      .then(response => {
-        if (response.status !== 204) throw new Error('Delete failed');
+      .then(async response => {
+        if (response.status !== 204) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
       });
 }
 
 function requestReadTimes() {
   return fetch(TIME_API_ENDPOINT)
-      .then(response => {
+      .then(async response => {
         if (response.status === 200) return response.json();
-        throw new Error('Read failed');
+        const errorText = await response.text();
+        throw new Error(errorText);
       });
 }

@@ -1,41 +1,27 @@
 package roomescape.controller.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import roomescape.global.exception.InvalidReservationException;
 
 class RequestReservationTest {
 
     @Test
-    @DisplayName("입력된 예약 이름이 비어있을 경우 예외가 발생한다.")
+    @DisplayName("예약에 필요한 데이터가 비어있을 경우 예외가 발생한다.")
     void shouldThrowException_whenEmptyReservationNameOfData() {
-        // given // when
-        InvalidReservationException exception = assertThrows(
-                InvalidReservationException.class,
-                () -> new RequestReservation("2025-06-30", "", "12:00")
-        );
-
-        // then
-        assertEquals("예약하기 위한 데이터(이름, 날짜, 시간)를 모두 입력해 주세요.", exception.getMessage());
+        // given // when // then
+        assertThatThrownBy(() -> new RequestReservation("2025-06-30", "", 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("예약하기 위한 데이터(이름, 날짜, 시간)를 모두 입력해 주세요.");
     }
 
     @Test
-    @DisplayName("과거의 날짜/시간일 경우 예외가 발생한다.")
-    void shouldThrowException_whenReservationIsPast() {
-        // given
-        String yesterday = String.valueOf(LocalDate.now().minusDays(1));
-
-        // when
-        InvalidReservationException exception = assertThrows(
-                InvalidReservationException.class,
-                () -> new RequestReservation(yesterday, "지윤", "10:00").validatePasted()
-        );
-
-        // then
-        assertEquals("이미 지난 날짜 및 시간은 예약할 수 없어요.", exception.getMessage());
+    @DisplayName("올바르지 않은 날짜 형식의 경우 예외가 발생한다.")
+    void shouldThrowException_whenInvalidDateFormat() {
+        // given // when // then
+        assertThatThrownBy(() -> new RequestReservation("2030-13-99", "dd", 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("날짜(년도-월-일)형식에 맞게 입력해 주세요. ex) 2020-12-31");
     }
 }
