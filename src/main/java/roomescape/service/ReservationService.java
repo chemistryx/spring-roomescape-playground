@@ -2,30 +2,39 @@ package roomescape.service;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import roomescape.dao.ReservationDao;
+import roomescape.dao.TimeDao;
 import roomescape.domain.Reservation;
+import roomescape.domain.Time;
 import roomescape.dto.ReservationRequest;
-import roomescape.repository.ReservationRepository;
+import roomescape.dto.ReservationResponse;
 
 @Service
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository;
+    private final ReservationDao reservationDao;
+    private final TimeDao timeDao;
 
-    public ReservationService(ReservationRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    public ReservationService(ReservationDao reservationDao, TimeDao timeDao) {
+        this.reservationDao = reservationDao;
+        this.timeDao = timeDao;
     }
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+    public List<ReservationResponse> getAllReservations() {
+        return reservationDao.findAll().stream()
+            .map(ReservationResponse::from)
+            .toList();
     }
 
-    public Reservation createReservation(ReservationRequest request) {
+    public ReservationResponse createReservation(ReservationRequest request) {
+        Time time = timeDao.findById(request.timeId());
         Reservation reservation = new Reservation(null, request.name(), request.date(),
-            request.time());
-        return reservationRepository.save(reservation);
+            time);
+        Reservation saved = reservationDao.save(reservation);
+        return ReservationResponse.from(saved);
     }
 
-    public void deleteReservation(long id) {
-        reservationRepository.deleteById(id);
+    public void deleteReservation(Long id) {
+        reservationDao.deleteById(id);
     }
 }

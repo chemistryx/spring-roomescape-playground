@@ -4,15 +4,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class ReservationController {
+public class TimeController {
 
-    @GetMapping("/")
-    public String home() {
-        return "home";
-    }
-
-    @GetMapping("/reservation")
+    @GetMapping("/time")
     public String reservationPage() {
-        return "new-reservation";
+        return "time";
     }
 }
