@@ -25,7 +25,7 @@ public class ReservationController {
 
     @GetMapping
     public List<ReservationResponse> getAllReservations() {
-        return  service.getAllReservations().stream()
+        return service.getAllReservations().stream()
                 .map(ReservationResponse::from) // (::from은 ReservationResponse::from과 동일)
                 .toList();
     }
@@ -41,11 +41,7 @@ public class ReservationController {
             @Valid @RequestBody ReservationCreateRequest requestDto
     ) {
 
-        Reservation reservationToCreate = new Reservation(
-                requestDto.name(),
-                requestDto.date(),
-                requestDto.time()
-        );
+        Reservation reservationToCreate = requestDto.toEntity();
 
         Reservation savedReservation = service.addReservation(reservationToCreate);
 
