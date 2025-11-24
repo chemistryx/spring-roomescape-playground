@@ -2,54 +2,34 @@ package roomescape.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import roomescape.dto.ReservationCreateRequest;
-import roomescape.exception.ReservationNotFoundException;
-import roomescape.exception.ReservationValidationException;
 import roomescape.model.Reservation;
+import roomescape.repository.ReservationRepository;
 
 @Service
 public class ReservationService {
-    private final AtomicInteger id;
-    private final List<Reservation> reservations;
+    private final ReservationRepository reservationRepository;
 
-    public ReservationService() {
-        this.id = new AtomicInteger(0);
-        this.reservations = Collections.synchronizedList(new ArrayList<>());
-
-//        populateDefaults();
+    public ReservationService(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
     }
 
     public List<Reservation> getReservations() {
-        return reservations;
+        return reservationRepository.findAll();
     }
 
     public Reservation createReservation(ReservationCreateRequest request) {
         LocalDate date = LocalDate.parse(request.date());
         LocalTime time = LocalTime.parse(request.time());
 
-        Reservation reservation = new Reservation(id.incrementAndGet(), request.name(), date, time);
-        reservations.add(reservation);
+        Reservation reservation = Reservation.create(request.name(), date, time);
 
-        return reservation;
+        return reservationRepository.save(reservation);
     }
 
     public void deleteReservation(int id) {
-       reservations.removeIf((reservation -> reservation.id() == id));
-    }
-
-    private void populateDefaults() {
-        reservations.addAll(
-                List.of(
-                        new Reservation(id.incrementAndGet(), "브라운", LocalDate.parse("2025-01-01"), LocalTime.parse("10:00")),
-                        new Reservation(id.incrementAndGet(), "브라운", LocalDate.parse("2025-01-02"), LocalTime.parse("11:00")),
-                        new Reservation(id.incrementAndGet(), "브라운", LocalDate.parse("2025-01-03"), LocalTime.parse("12:00"))
-                )
-        );
+        reservationRepository.deleteById(id);
     }
 }
