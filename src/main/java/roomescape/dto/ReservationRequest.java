@@ -1,28 +1,19 @@
 package roomescape.dto;
 
-public class ReservationRequest {
-    private String name;
-    private String date;
-    private String time;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-    public ReservationRequest() {
-    }
+import java.time.LocalDate;
+import java.time.LocalTime;
 
-    public ReservationRequest(String name, String date, String time) {
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
+public record ReservationRequest(
+        @NotBlank(message = "예약자 이름은 필수입니다.")
+        String name,
 
-    public String getName() {
-        return name;
-    }
+        @NotNull(message = "예약 날짜는 필수입니다.")
+        LocalDate date,
 
-    public String getDate() {
-        return date;
-    }
-
-    public String getTime() {
-        return time;
-    }
+        @NotNull(message = "예약 시간은 필수입니다.")
+        LocalTime time
+) {
 }
