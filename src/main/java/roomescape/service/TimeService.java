@@ -4,6 +4,7 @@ import java.time.LocalTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import roomescape.dto.TimeCreateRequest;
+import roomescape.exception.TimeNotFoundException;
 import roomescape.model.Time;
 import roomescape.repository.TimeRepository;
 
@@ -17,6 +18,10 @@ public class TimeService {
 
     public List<Time> getTimes() {
         return timeRepository.findAll();
+    }
+
+    public Time getById(int id) {
+        return timeRepository.findById(id).orElseThrow(() -> new TimeNotFoundException("올바르지 않은 시간 ID 입니다."));
     }
 
     public Time createTime(TimeCreateRequest request) {

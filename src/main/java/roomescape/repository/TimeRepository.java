@@ -2,6 +2,7 @@ package roomescape.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -34,14 +35,21 @@ public class TimeRepository {
         return jdbcTemplate.query(query, timeMapper);
     }
 
+    public Optional<Time> findById(int id) {
+        String query = "SELECT id, time FROM " + TABLE_NAME + " WHERE id = ?";
+        List<Time> times = jdbcTemplate.query(query, timeMapper, id);
+
+        return times.isEmpty() ? Optional.empty() : Optional.of(times.get(0));
+    }
+
     public Time save(Time time) {
         Map<String, Object> params = Map.of(
-                "time", time.time()
+                "time", time.value()
         );
 
         Number id = simpleJdbcInsert.executeAndReturnKey(params);
 
-        return Time.of(id.intValue(), time.time());
+        return Time.of(id.intValue(), time.value());
     }
 
     public void deleteById(int id) {
