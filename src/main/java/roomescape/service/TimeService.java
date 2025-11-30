@@ -2,8 +2,10 @@ package roomescape.service;
 
 import java.time.LocalTime;
 import java.util.List;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import roomescape.dto.TimeCreateRequest;
+import roomescape.exception.DuplicateTimeException;
 import roomescape.exception.TimeNotFoundException;
 import roomescape.model.Time;
 import roomescape.repository.TimeRepository;
@@ -29,7 +31,11 @@ public class TimeService {
 
         Time time = Time.create(parsedTime);
 
-        return timeRepository.save(time);
+        try {
+            return timeRepository.save(time);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateTimeException("이미 존재하는 시간입니다.");
+        }
     }
 
     public void deleteTime(int id) {

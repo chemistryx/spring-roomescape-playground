@@ -20,6 +20,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(DuplicateTimeException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateTimeException(DuplicateTimeException e) {
+        log.error(e.getMessage());
+
+        return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getAllErrors().stream().map((err) -> err.getDefaultMessage()).findFirst().orElse("입력 값 검증 실패");
