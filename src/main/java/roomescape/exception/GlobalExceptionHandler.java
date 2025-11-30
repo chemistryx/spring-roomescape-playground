@@ -10,7 +10,7 @@ import roomescape.dto.ErrorResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(TimeNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleReservationNotFoundException(TimeNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleTimeNotFoundException(TimeNotFoundException e) {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
