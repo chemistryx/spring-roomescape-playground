@@ -24,7 +24,7 @@ public class ReservationService {
 
     public Reservation createReservation(ReservationCreateRequest request) {
         LocalDate date = LocalDate.parse(request.date());
-        Time time = timeService.getById(Integer.parseInt(request.time())); // DTO 단에서 검증 완료
+        Time time = timeService.getById(Integer.parseInt(request.time()));
 
         Reservation reservation = Reservation.create(request.name(), date, time);
 
