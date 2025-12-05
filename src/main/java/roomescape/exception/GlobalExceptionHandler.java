@@ -15,14 +15,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TimeNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTimeNotFoundException(TimeNotFoundException e) {
-        log.error(e.getMessage());
+        log.error("TimeNotFoundException occurred:", e);
 
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DuplicateTimeException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateTimeException(DuplicateTimeException e) {
-        log.error(e.getMessage());
+        log.error("DuplicateTimeException occurred:", e);
 
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
@@ -30,14 +30,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getAllErrors().stream().map((err) -> err.getDefaultMessage()).findFirst().orElse("입력 값 검증 실패");
-        log.error(e.getMessage());
+        log.error("MethodArgumentNotValidException occurred:", e);
 
         return new ResponseEntity<>(new ErrorResponse(message), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleFallbackException(Exception e) {
-        log.error(e.getMessage());
+        log.error("Exception occurred:", e);
 
         return new ResponseEntity<>(new ErrorResponse("내부 서버 오류가 발생했습니다."), HttpStatus.INTERNAL_SERVER_ERROR);
     }
