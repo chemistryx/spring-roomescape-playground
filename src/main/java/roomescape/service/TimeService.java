@@ -39,6 +39,8 @@ public class TimeService {
     }
 
     public void deleteTime(int id) {
-        timeRepository.deleteById(id);
+        int result = timeRepository.deleteById(id);
+
+        if (result == 0) throw new TimeNotFoundException("시간이 존재하지 않습니다.");
     }
 }

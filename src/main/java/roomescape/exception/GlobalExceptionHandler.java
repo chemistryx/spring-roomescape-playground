@@ -20,6 +20,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleReservationNotFoundException(ReservationNotFoundException e) {
+        log.error("ReservationNotFoundException occurred:", e);
+
+        return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(DuplicateTimeException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateTimeException(DuplicateTimeException e) {
         log.error("DuplicateTimeException occurred:", e);

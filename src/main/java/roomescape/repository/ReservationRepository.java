@@ -51,9 +51,9 @@ public class ReservationRepository {
         return Reservation.of(id.intValue(), reservation.name(), reservation.date(), reservation.time());
     }
 
-    public void deleteById(int id) {
+    public int deleteById(int id) {
         String query = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
 
-        jdbcTemplate.update(query, id);
+        return jdbcTemplate.update(query, id);
     }
 }

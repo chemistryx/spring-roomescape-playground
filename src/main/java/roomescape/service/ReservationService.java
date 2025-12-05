@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import roomescape.dto.ReservationCreateRequest;
+import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
 import roomescape.model.Time;
 import roomescape.repository.ReservationRepository;
@@ -32,6 +33,8 @@ public class ReservationService {
     }
 
     public void deleteReservation(int id) {
-        reservationRepository.deleteById(id);
+        int result = reservationRepository.deleteById(id);
+
+        if (result == 0) throw new ReservationNotFoundException("예약이 존재하지 않습니다.");
     }
 }
