@@ -10,14 +10,17 @@ import roomescape.exception.DuplicateTimeException;
 import roomescape.exception.TimeInUseException;
 import roomescape.exception.TimeNotFoundException;
 import roomescape.model.Time;
+import roomescape.repository.ReservationRepository;
 import roomescape.repository.TimeRepository;
 
 @Service
 public class TimeService {
     private final TimeRepository timeRepository;
+    private final ReservationRepository reservationRepository;
 
-    public TimeService(TimeRepository timeRepository) {
+    public TimeService(TimeRepository timeRepository, ReservationRepository reservationRepository) {
         this.timeRepository = timeRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     public List<Time> getTimes() {
@@ -41,12 +44,14 @@ public class TimeService {
     }
 
     public void deleteTime(int id) {
-        try {
-            int result = timeRepository.deleteById(id);
+        // 1. 시간 존재 확인
+        timeRepository.findById(id).orElseThrow(() -> new TimeNotFoundException("시간이 존재하지 않습니다."));
 
-            if (result == 0) throw new TimeNotFoundException("시간이 존재하지 않습니다.");
-        } catch (DataIntegrityViolationException e) {
-            throw new TimeInUseException("예약에 사용중인 시간은 삭제할 수 없습니다.");
-        }
+        // 2. 시간이 예약에 사용중인지 확인
+        boolean isInUse = reservationRepository.existsByTimeId(id);
+        if (isInUse) throw new TimeInUseException("예약에 사용중인 시간은 삭제할 수 없습니다.");
+
+        // 3. 삭제
+        timeRepository.deleteById(id);
     }
 }

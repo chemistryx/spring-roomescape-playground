@@ -2,6 +2,7 @@ package roomescape.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -39,6 +40,15 @@ public class ReservationRepository {
         return jdbcTemplate.query(query, reservationMapper);
     }
 
+    public Optional<Reservation> findById(int id) {
+        String query = "SELECT r.id AS reservation_id, r.name, r.date, t.id AS time_id, t.time AS time_value FROM " + TABLE_NAME + " AS r INNER JOIN time AS t ON r.time_id = t.id WHERE r.id = ?";
+        List<Reservation> reservations = jdbcTemplate.query(query, reservationMapper, id);
+
+        System.out.println(reservations);
+
+        return reservations.isEmpty() ? Optional.empty() : Optional.of(reservations.get(0));
+    }
+
     public Reservation save(Reservation reservation) {
         Map<String, Object> params = Map.of(
                 "name", reservation.name(),
@@ -51,9 +61,15 @@ public class ReservationRepository {
         return Reservation.of(id.intValue(), reservation.name(), reservation.date(), reservation.time());
     }
 
-    public int deleteById(int id) {
+    public void deleteById(int id) {
         String query = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
 
-        return jdbcTemplate.update(query, id);
+        jdbcTemplate.update(query, id);
+    }
+
+    public boolean existsByTimeId(int timeId) {
+        String query = "SELECT EXISTS (SELECT 1 FROM " + TABLE_NAME + " WHERE time_id = ?)";
+
+        return jdbcTemplate.queryForObject(query, Boolean.class, timeId);
     }
 }

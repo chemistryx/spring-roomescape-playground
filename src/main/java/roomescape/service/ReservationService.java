@@ -33,8 +33,8 @@ public class ReservationService {
     }
 
     public void deleteReservation(int id) {
-        int result = reservationRepository.deleteById(id);
+        reservationRepository.findById(id).orElseThrow(() -> new ReservationNotFoundException("예약이 존재하지 않습니다."));
 
-        if (result == 0) throw new ReservationNotFoundException("예약이 존재하지 않습니다.");
+        reservationRepository.deleteById(id);
     }
 }

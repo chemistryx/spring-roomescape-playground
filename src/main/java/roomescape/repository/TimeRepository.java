@@ -52,9 +52,9 @@ public class TimeRepository {
         return Time.of(id.intValue(), time.value());
     }
 
-    public int deleteById(int id) {
+    public void deleteById(int id) {
         String query = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
 
-        return jdbcTemplate.update(query, id);
+        jdbcTemplate.update(query, id);
     }
 }
